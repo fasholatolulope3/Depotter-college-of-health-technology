@@ -3,7 +3,7 @@ import { ref } from 'vue';
 export const categories = ref([
   { id: 1, name: 'MR DE POTTER', nominees: [{ name: 'Ogundele Ayomide Daniel', currentVotes: 0 }], icon: '👨‍💼' },
   { id: 2, name: 'MISS DE POTTER', nominees: [{ name: 'Orebanwo oluwanifemi Eniola', currentVotes: 0 }, { name: 'Peters Modupe Pretty', currentVotes: 0 }], icon: '👸' },
-  { id: 3, name: 'Most Popular Personality', nominees: [{ name: 'Adewuyi Oyindamola', currentVotes: 0 }], icon: '🌟' },
+  { id: 3, name: 'Most Popular Personality', nominees: [{ name: 'Adewuyi Oyindamola', currentVotes: 0 }, { name: 'Yusuf Moriamo Idowu (Makanaki)', currentVotes: 0 }], icon: '🌟' },
   { id: 4, name: 'Most Popular Student', nominees: [{ name: 'Shakira olaofe', currentVotes: 0 }], icon: '🙋‍♂️' },
   { id: 5, name: 'Most Popular Student (Female)', nominees: [{ name: 'Aderoju Ademide Tolulope', currentVotes: 0 }], icon: '🙋‍♀️' },
   { id: 6, name: 'Best Departmental Fresher', nominees: [{ name: 'Fadahunsi Mubarak', currentVotes: 0 }], icon: '🌱' },
@@ -25,7 +25,8 @@ export const categories = ref([
   { id: 22, name: 'Best Departmental Student (Male)', nominees: [{ name: 'Yusuf Habeeb', currentVotes: 0 }], icon: '👨‍🎓' },
   { id: 23, name: 'Miss Pretty', nominees: [{ name: 'Owolabi Aisha', currentVotes: 0 }], icon: '🌸' },
   { id: 24, name: 'Most Reserved Personality', nominees: [{ name: 'Owolabi Aisha', currentVotes: 0 }], icon: '🤐' },
-  { id: 25, name: 'Most Loved', nominees: [{ name: 'Shakirat olaofe', currentVotes: 0 }], icon: '❤️' }
+  { id: 25, name: 'Most Loved', nominees: [{ name: 'Shakirat olaofe', currentVotes: 0 }], icon: '❤️' },
+  { id: 26, name: 'Most Influential Student of the Year', nominees: [{ name: 'Ogundaini solomon (WIZZLE)', currentVotes: 0 }], icon: '🌟' }
 ]);
 
 export const applyApprovedVotes = (approvedVotesArray) => {
