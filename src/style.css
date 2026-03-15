@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+@theme {
+  --color-chocolate: #3d1c02;
+  --color-chocolate-hover: #5a2a03;
+  --color-cream: #fffdf5;
+  --color-cream-dark: #f5f1e6;
+
+  --font-serif: "Playfair Display", serif;
+  --font-sans: "Inter", system-ui, sans-serif;
+}
+
+@layer base {
+  body {
+    @apply bg-cream text-chocolate font-sans;
+  }
+}
