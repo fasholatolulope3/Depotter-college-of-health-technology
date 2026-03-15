@@ -8,9 +8,9 @@ import CountdownTimer from './components/CountdownTimer.vue';
     <nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-chocolate/5 px-6 py-4 flex items-center justify-between">
       <router-link to="/" class="flex items-center gap-2">
         <div class="w-10 h-10 bg-chocolate rounded-lg flex items-center justify-center text-cream font-serif font-bold text-xl">
-          DA
+          DC
         </div>
-        <span class="font-serif font-bold text-xl hidden sm:inline-block text-chocolate">Pharmacy Department Award Day</span>
+        <span class="font-serif font-bold text-xl hidden sm:inline-block text-chocolate">Depotter College of Health Technology contestants</span>
       </router-link>
       <CountdownTimer />
     </nav>
@@ -25,8 +25,7 @@ import CountdownTimer from './components/CountdownTimer.vue';
 
     <footer class="bg-chocolate-hover text-cream/50 py-12 px-6 border-t border-white/5 mt-auto">
       <div class="max-w-7xl mx-auto text-center space-y-4">
-        <p class="text-sm tracking-widest uppercase">Pharmacy Department Award Day &copy; 2026</p>
-        <p class="text-xs">Pharmacy Department</p>
+        <p class="text-sm tracking-widest uppercase">Depotter College of Health Technology &copy; 2026</p>
       </div>
     </footer>
   </div>
