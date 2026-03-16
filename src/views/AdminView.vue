@@ -34,6 +34,16 @@ const reject = async (id) => {
 };
 
 
+const selectedReceipt = ref(null);
+
+const viewReceipt = (imageUrl) => {
+  selectedReceipt.value = imageUrl;
+};
+
+const closeReceipt = () => {
+  selectedReceipt.value = null;
+};
+
 const goBack = () => {
   router.push('/');
 };
@@ -51,6 +61,30 @@ onMounted(() => {
 
 <template>
   <main class="max-w-6xl mx-auto px-6 py-12 pb-32 min-h-screen">
+    <!-- Overlay / Receipt Viewer -->
+    <div v-if="selectedReceipt" 
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm"
+         @click="closeReceipt">
+      <div class="relative max-w-4xl w-full max-h-[90vh] flex flex-col items-center" @click.stop>
+        <button @click="closeReceipt" 
+                class="absolute -top-12 right-0 text-white hover:text-red-500 transition-colors flex items-center gap-2 font-bold uppercase tracking-widest text-sm">
+          Close Viewer
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+        <div class="w-full bg-white rounded-2xl overflow-hidden shadow-2xl">
+          <img :src="selectedReceipt" class="w-full h-full object-contain max-h-[80vh]" />
+        </div>
+        <a :href="selectedReceipt" download="receipt.jpg" class="mt-6 bg-white text-chocolate px-8 py-3 rounded-xl font-bold hover:bg-cream transition-all flex items-center gap-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+          Download Receipt
+        </a>
+      </div>
+    </div>
+
     <!-- Login Screen -->
     <div v-if="!isAuthenticated" class="max-w-md mx-auto mt-20 p-8 bg-white rounded-[2rem] border border-chocolate/10 shadow-xl">
       <div class="text-center mb-8">
@@ -189,9 +223,9 @@ onMounted(() => {
                 </p>
                 <div class="bg-chocolate/5 rounded-2xl overflow-hidden border border-chocolate/10 aspect-[3/4] group relative cursor-zoom-in shadow-inner">
                   <img :src="tx.receiptImage" class="w-full h-full object-contain" />
-                  <a :href="tx.receiptImage" target="_blank" class="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
+                  <button @click="viewReceipt(tx.receiptImage)" class="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100 w-full h-full">
                     <span class="bg-white px-5 py-2 rounded-full font-bold text-chocolate shadow-2xl text-xs uppercase tracking-widest border border-chocolate/10">View Full Receipt</span>
-                  </a>
+                  </button>
                 </div>
               </div>
             </div>

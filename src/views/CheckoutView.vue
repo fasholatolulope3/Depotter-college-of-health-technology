@@ -19,8 +19,17 @@ const handleFileChange = (e) => {
   if (!file) return;
 
   receiptFile.value = file;
+  
+  // Use createObjectURL for immediate UI feedback (faster than FileReader)
+  receiptPreview.value = URL.createObjectURL(file);
+
   const reader = new FileReader();
   
+  reader.onerror = () => {
+    console.error('FileReader error');
+    alert('Failed to read the file. Please try again or use a different image.');
+  };
+
   reader.onload = (event) => {
     const img = new Image();
     img.onload = () => {
@@ -29,9 +38,9 @@ const handleFileChange = (e) => {
       let width = img.width;
       let height = img.height;
 
-      // Max dimensions to keep it under localStorage limit
-      const MAX_WIDTH = 1024;
-      const MAX_HEIGHT = 1024;
+      // Max dimensions to keep it under localStorage/Firestore limits
+      const MAX_WIDTH = 1200;
+      const MAX_HEIGHT = 1200;
 
       if (width > height) {
         if (width > MAX_WIDTH) {
@@ -51,12 +60,17 @@ const handleFileChange = (e) => {
       const ctx = canvas.getContext('2d');
       ctx.drawImage(img, 0, 0, width, height);
 
-      // Compress to JPEG with 0.7 quality
-      const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+      // Compress to JPEG with 0.6 quality (better for storage)
+      const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.6);
+      
+      // Update the preview with the actual data that will be sent
       receiptPreview.value = compressedDataUrl;
       
       console.log('Original size:', (file.size / 1024 / 1024).toFixed(2), 'MB');
       console.log('Compressed size:', (compressedDataUrl.length * 3/4 / 1024 / 1024).toFixed(2), 'MB');
+    };
+    img.onerror = () => {
+      alert('Failed to process image. Please try a different receipt image.');
     };
     img.src = event.target.result;
   };
@@ -217,6 +231,7 @@ onMounted(() => {
                 <input 
                   type="file" 
                   accept="image/*" 
+                  capture="camera"
                   @change="handleFileChange" 
                   class="hidden" 
                   id="receipt-upload"
