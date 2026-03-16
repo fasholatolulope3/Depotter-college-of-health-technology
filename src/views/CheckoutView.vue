@@ -231,7 +231,6 @@ onMounted(() => {
                 <input 
                   type="file" 
                   accept="image/*" 
-                  capture="camera"
                   @change="handleFileChange" 
                   class="hidden" 
                   id="receipt-upload"
