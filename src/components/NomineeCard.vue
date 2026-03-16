@@ -36,18 +36,14 @@ const decrement = () => {
   cartStore.removeVote(categoryId.value, props.nomineeName);
 };
 
-// Calculate total approved votes from the admin store (persisted in localStorage)
+// Find the latest vote count directly from the unified categories store
 const displayVotes = computed(() => {
-  return adminStore.pendingTransactions
-    .filter(tx => tx.status === 'approved')
-    .reduce((total, tx) => {
-      // Find votes for this specific nominee in this category
-      const nomineeVotes = tx.votes.find(v => 
-        v.nomineeName === props.nomineeName && 
-        v.categoryId === categoryId.value
-      );
-      return total + (nomineeVotes ? nomineeVotes.quantity : 0);
-    }, 0);
+  const category = categories.value.find(c => Number(c.id) === categoryId.value);
+  if (category) {
+    const nominee = category.nominees.find(n => n.name.trim() === props.nomineeName.trim());
+    return nominee ? nominee.currentVotes : 0;
+  }
+  return 0;
 });
 </script>
 

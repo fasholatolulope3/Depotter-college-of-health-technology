@@ -41,12 +41,17 @@ export const applyApprovedVotes = (approvedVotesArray) => {
 
   // Apply the approved votes
   approvedVotesArray.forEach(vote => {
-    const category = categories.value.find(c => c.id === vote.categoryId);
+    // Robust search using Number() for ID and trim() for name
+    const category = categories.value.find(c => Number(c.id) === Number(vote.categoryId));
     if (category) {
-      const nominee = category.nominees.find(n => n.name === vote.nomineeName);
+      const nominee = category.nominees.find(n => n.name.trim() === vote.nomineeName.trim());
       if (nominee) {
-        nominee.currentVotes += vote.quantity;
+        nominee.currentVotes += Number(vote.quantity || 0);
+      } else {
+        console.warn(`Nominee not found: "${vote.nomineeName}" in category: "${category.name}"`);
       }
+    } else {
+      console.warn(`Category ID not found: ${vote.categoryId} for nominee: ${vote.nomineeName}`);
     }
   });
 };
