@@ -13,7 +13,7 @@ const router = useRouter();
 const receiptFile = ref(null);
 const receiptPreview = ref(null);
 const isProcessing = ref(false);
-const email = ref('');
+const email = ref('fasholatolulope3@gmail.com');
 const paystackPublicKey = 'pk_live_ae8246320eb1758fc30e5142aa658dd5f14167bf';
 
 const handleFileChange = (e) => {
@@ -81,11 +81,6 @@ const handleFileChange = (e) => {
 };
 
 const payWithPaystack = () => {
-  if (!email.value) {
-    alert('Please enter your email address to proceed with payment.');
-    return;
-  }
-
   isProcessing.value = true;
 
   const handler = PaystackPop.setup({
@@ -250,16 +245,6 @@ onMounted(() => {
           <span class="text-xs font-normal text-chocolate/50 bg-white px-2 py-0.5 rounded-full border border-chocolate/10">POWERED BY PAYSTACK</span>
         </h2>
         <div class="space-y-4">
-          <div>
-            <label class="block text-sm font-medium text-chocolate/70 mb-1">Email Address</label>
-            <input 
-              v-model="email"
-              type="email" 
-              placeholder="voter@example.com"
-              class="w-full px-4 py-3 rounded-xl border border-chocolate/10 focus:ring-2 focus:ring-[#09A588] focus:border-transparent outline-none transition-all"
-              required
-            />
-          </div>
           <button 
             @click="payWithPaystack"
             :disabled="isProcessing"
