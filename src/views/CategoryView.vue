@@ -1,15 +1,17 @@
 <script setup>
 import { computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { categories } from '../stores/categories.js';
+import { useCategoriesStore } from '../stores/categories.js';
 import NomineeCard from '../components/NomineeCard.vue';
 import CartBanner from '../components/CartBanner.vue';
 
 const route = useRoute();
 const router = useRouter();
+const categoriesStore = useCategoriesStore();
 
 const categoryId = computed(() => Number(route.params.id));
-const category = computed(() => categories.value.find(c => c.id === categoryId.value));
+const category = computed(() => categoriesStore.categories.find(c => c.id === categoryId.value));
+
 
 const goBack = () => {
   router.push('/');

@@ -3,16 +3,18 @@ import { ref, computed } from 'vue';
 import HeroBanner from '../components/HeroBanner.vue';
 import CategorySearch from '../components/CategorySearch.vue';
 import CategoryCard from '../components/CategoryCard.vue';
-import { categories } from '../stores/categories.js';
+import { useCategoriesStore } from '../stores/categories.js';
 
+const categoriesStore = useCategoriesStore();
 const searchQuery = ref('');
 const currentPage = ref(1);
 
 const filteredCategories = computed(() => {
-  return categories.value.filter(category => 
+  return categoriesStore.categories.filter(category => 
     category.name.toLowerCase().includes(searchQuery.value.toLowerCase())
   );
 });
+
 
 const paginationItems = [1, 2, 3];
 </script>

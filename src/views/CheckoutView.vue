@@ -4,6 +4,9 @@ import { useCartStore } from '../stores/cart';
 import { useAdminStore } from '../stores/admin';
 import { useDeadlineStore } from '../stores/deadline';
 import { useRouter } from 'vue-router';
+import { db } from '../firebase';
+import { doc, updateDoc } from 'firebase/firestore';
+
 
 const cartStore = useCartStore();
 const adminStore = useAdminStore();
@@ -80,48 +83,82 @@ const handleFileChange = (e) => {
   reader.readAsDataURL(file);
 };
 
-const payWithPaystack = () => {
+const payWithPaystack = async () => {
   isProcessing.value = true;
+
+  // 1. Create a "pending" transaction record in Firestore FIRST
+  // This ensures that even if the browser crashes after payment, we have a record to reconcile
+  const transactionData = {
+    paymentType: 'paystack',
+    votes: JSON.parse(JSON.stringify(cartStore.votes)),
+    totalCost: cartStore.totalCost,
+    email: email.value,
+    status: 'pending', // Initially pending
+    timestamp: new Date().toISOString(),
+    paystackReference: 'awaiting_payment'
+  };
+
+  let transactionId = null;
+  try {
+    transactionId = await adminStore.submitTransaction(transactionData);
+    console.log('Pending transaction created:', transactionId);
+  } catch (error) {
+    console.error('Failed to create pending transaction:', error);
+    alert('Failed to initialize payment. Please check your internet connection and try again.');
+    isProcessing.value = false;
+    return;
+  }
 
   const handler = PaystackPop.setup({
     key: paystackPublicKey,
     email: email.value,
     amount: cartStore.totalCost * 100, // Amount in Kobo
     currency: 'NGN',
+    metadata: {
+      transactionId: transactionId,
+      custom_fields: [
+        {
+          display_name: "Transaction ID",
+          variable_name: "transaction_id",
+          value: transactionId
+        }
+      ]
+    },
     callback: async (response) => {
       // Payment successful
-      alert('Payment successful! Reference: ' + response.reference);
+      console.log('Paystack payment successful:', response.reference);
       
-      const transactionData = {
-        paymentType: 'paystack',
-        paystackReference: response.reference,
-        votes: JSON.parse(JSON.stringify(cartStore.votes)),
-        totalCost: cartStore.totalCost,
-        email: email.value,
-        timestamp: new Date().toISOString(),
-        status: 'approved' // Auto-approve for Paystack
-      };
-
       try {
-        await adminStore.submitTransaction(transactionData);
-        alert('Your votes have been successfully recorded!');
+        // 2. Update the EXISTING transaction record to 'approved'
+        const docRef = doc(db, "transactions", transactionId);
+        await updateDoc(docRef, {
+          status: 'approved',
+          paystackReference: response.reference,
+          confirmedAt: new Date().toISOString()
+        });
+
+        alert('Payment successful! Your votes have been recorded.');
         cartStore.$patch({ votes: [] });
         router.push('/');
       } catch (error) {
-        console.error('Failed to save transaction:', error);
-        alert('Payment was successful, but we failed to record your votes. Please contact support with reference: ' + response.reference);
+        console.error('Failed to update transaction status:', error);
+        alert('Payment was successful, but we had trouble updating the record. Please keep your reference: ' + response.reference + ' and contact support if your votes do not appear shortly.');
       } finally {
         isProcessing.value = false;
       }
     },
     onClose: () => {
       isProcessing.value = false;
-      alert('Payment cancelled. Your votes will not be recorded until payment is complete.');
+      // We leave the transaction as 'pending' in Firestore. 
+      // The admin can see it and potentially reconcile it if the user claims they paid.
+      // Or we could mark it as 'cancelled' if we're sure.
+      console.log('Paystack popup closed by user');
     }
   });
 
   handler.openIframe();
 };
+
 
 
 

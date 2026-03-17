@@ -1,5 +1,9 @@
 <script setup>
 import CountdownTimer from './components/CountdownTimer.vue';
+import { useAdminStore } from './stores/admin';
+
+// Initialize admin store at the root to keep real-time listeners active
+const adminStore = useAdminStore();
 </script>
 
 <template>

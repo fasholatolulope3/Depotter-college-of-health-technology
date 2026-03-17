@@ -2,7 +2,9 @@
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { useCartStore } from '../stores/cart';
-import { categories } from '../stores/categories';
+import { useCategoriesStore } from '../stores/categories';
+import { useAdminStore } from '../stores/admin';
+import { useDeadlineStore } from '../stores/deadline';
 
 const props = defineProps({
   nomineeName: {
@@ -15,12 +17,10 @@ const props = defineProps({
   }
 });
 
-import { useAdminStore } from '../stores/admin';
-import { useDeadlineStore } from '../stores/deadline';
-
 const route = useRoute();
 const cartStore = useCartStore();
 const adminStore = useAdminStore();
+const categoriesStore = useCategoriesStore();
 const deadlineStore = useDeadlineStore();
 const categoryId = computed(() => Number(route.params.id));
 
@@ -38,13 +38,14 @@ const decrement = () => {
 
 // Find the latest vote count directly from the unified categories store
 const displayVotes = computed(() => {
-  const category = categories.value.find(c => Number(c.id) === categoryId.value);
+  const category = categoriesStore.categories.find(c => Number(c.id) === categoryId.value);
   if (category) {
     const nominee = category.nominees.find(n => n.name.trim() === props.nomineeName.trim());
     return nominee ? nominee.currentVotes : 0;
   }
   return 0;
 });
+
 </script>
 
 <template>

@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { ref, onMounted } from "vue";
-import { applyApprovedVotes } from "./categories";
+import { useCategoriesStore } from "./categories";
 import { db } from "../firebase";
 import { 
   collection, 
@@ -14,6 +14,7 @@ import {
 
 export const useAdminStore = defineStore("admin", () => {
   const pendingTransactions = ref([]);
+  const categoriesStore = useCategoriesStore();
 
   // Initialize real-time listener
   const initListener = () => {
@@ -26,23 +27,29 @@ export const useAdminStore = defineStore("admin", () => {
       
       // Update totals in categories store based on approved transactions
       const approved = pendingTransactions.value.filter(t => t.status === 'approved');
-      // Reset votes first to avoid double counting if needed, or handle in applyApprovedVotes
-      // For simplicity, we'll re-apply all approved votes
-      // Note: categories.js needs to handle this reset/re-apply
-      applyApprovedVotes(approved.flatMap(t => t.votes));
+      
+      const allVotes = approved
+        .filter(t => t.votes && Array.isArray(t.votes))
+        .flatMap(t => t.votes);
+        
+      categoriesStore.applyApprovedVotes(allVotes);
     });
   };
+
 
   // Call initListener immediately
   initListener();
 
   const submitTransaction = async (transactionData) => {
     try {
-      const docRef = await addDoc(collection(db, "transactions"), {
+      // Ensure status is included, defaulting to 'pending' if not provided
+      const finalData = {
         timestamp: new Date().toISOString(),
-        status: 'pending',
+        status: transactionData.status || 'pending',
         ...transactionData
-      });
+      };
+      
+      const docRef = await addDoc(collection(db, "transactions"), finalData);
       return docRef.id;
     } catch (error) {
       console.error("Error adding transaction: ", error);
