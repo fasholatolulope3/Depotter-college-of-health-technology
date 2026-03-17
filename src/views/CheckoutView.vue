@@ -13,6 +13,8 @@ const router = useRouter();
 const receiptFile = ref(null);
 const receiptPreview = ref(null);
 const isProcessing = ref(false);
+const email = ref('');
+const paystackPublicKey = 'pk_live_ae8246320eb1758fc30e5142aa658dd5f14167bf';
 
 const handleFileChange = (e) => {
   const file = e.target.files[0];
@@ -76,6 +78,54 @@ const handleFileChange = (e) => {
   };
   
   reader.readAsDataURL(file);
+};
+
+const payWithPaystack = () => {
+  if (!email.value) {
+    alert('Please enter your email address to proceed with payment.');
+    return;
+  }
+
+  isProcessing.value = true;
+
+  const handler = PaystackPop.setup({
+    key: paystackPublicKey,
+    email: email.value,
+    amount: cartStore.totalCost * 100, // Amount in Kobo
+    currency: 'NGN',
+    callback: async (response) => {
+      // Payment successful
+      alert('Payment successful! Reference: ' + response.reference);
+      
+      const transactionData = {
+        paymentType: 'paystack',
+        paystackReference: response.reference,
+        votes: JSON.parse(JSON.stringify(cartStore.votes)),
+        totalCost: cartStore.totalCost,
+        email: email.value,
+        timestamp: new Date().toISOString(),
+        status: 'approved' // Auto-approve for Paystack
+      };
+
+      try {
+        await adminStore.submitTransaction(transactionData);
+        alert('Your votes have been successfully recorded!');
+        cartStore.$patch({ votes: [] });
+        router.push('/');
+      } catch (error) {
+        console.error('Failed to save transaction:', error);
+        alert('Payment was successful, but we failed to record your votes. Please contact support with reference: ' + response.reference);
+      } finally {
+        isProcessing.value = false;
+      }
+    },
+    onClose: () => {
+      isProcessing.value = false;
+      alert('Payment cancelled. Your votes will not be recorded until payment is complete.');
+    }
+  });
+
+  handler.openIframe();
 };
 
 
@@ -193,9 +243,53 @@ onMounted(() => {
         </div>
       </section>
 
+      <!-- Paystack Payment Section -->
+      <section class="bg-[#09A588]/5 p-6 rounded-2xl border border-[#09A588]/20">
+        <h2 class="text-xl font-bold text-chocolate mb-4 flex items-center gap-2">
+          Secure Online Payment
+          <span class="text-xs font-normal text-chocolate/50 bg-white px-2 py-0.5 rounded-full border border-chocolate/10">POWERED BY PAYSTACK</span>
+        </h2>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-chocolate/70 mb-1">Email Address</label>
+            <input 
+              v-model="email"
+              type="email" 
+              placeholder="voter@example.com"
+              class="w-full px-4 py-3 rounded-xl border border-chocolate/10 focus:ring-2 focus:ring-[#09A588] focus:border-transparent outline-none transition-all"
+              required
+            />
+          </div>
+          <button 
+            @click="payWithPaystack"
+            :disabled="isProcessing"
+            class="w-full bg-[#09A588] hover:bg-[#07856d] text-white font-black text-lg py-5 px-8 rounded-2xl transition-all shadow-xl hover:shadow-[#09A588]/20 flex items-center justify-center gap-3 disabled:opacity-70"
+          >
+            <span v-if="!isProcessing">Pay ₦{{ cartStore.totalCost.toLocaleString() }} Now</span>
+            <span v-else class="flex items-center gap-2">
+              <svg class="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Processing...
+            </span>
+          </button>
+          <p class="text-[10px] text-center text-chocolate/40 uppercase tracking-widest font-bold">
+            Votes are INSTANTLY recorded after successful payment
+          </p>
+        </div>
+      </section>
+
+      <!-- OR Divider -->
+      <div class="flex items-center gap-4 py-2">
+        <div class="flex-1 h-[1px] bg-chocolate/10"></div>
+        <span class="text-xs font-bold text-chocolate/30 uppercase tracking-widest">OR USE BANK TRANSFER</span>
+        <div class="flex-1 h-[1px] bg-chocolate/10"></div>
+      </div>
+
       <!-- Bank Transfer Payment Instructions -->
       <section class="bg-cream-dark p-6 rounded-2xl">
-        <h2 class="text-xl font-bold text-chocolate mb-4">Payment Instructions</h2>
+        <h2 class="text-xl font-bold text-chocolate mb-4">Manual Bank Transfer</h2>
         <p class="text-chocolate/80 mb-6">
           To complete your voting, please make a transfer of <span class="font-bold">₦{{ cartStore.totalCost.toLocaleString() }}</span> to the bank account below.
         </p>
