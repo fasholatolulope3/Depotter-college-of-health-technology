@@ -33,6 +33,9 @@ export const useAdminStore = defineStore("admin", () => {
         .flatMap(t => t.votes);
         
       categoriesStore.applyApprovedVotes(allVotes);
+    }, (error) => {
+      console.error("FIRESTORE LISTENER ERROR:", error);
+      alert("Database error: " + error.message + ". Please refresh the page. If issue persists, check your Firestore Security Rules.");
     });
   };
 

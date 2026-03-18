@@ -123,12 +123,12 @@ onMounted(() => {
             </svg>
           </button>
           <h1 class="text-3xl font-serif font-bold text-chocolate uppercase tracking-wide">
-            Admin Dashboard
+            Transaction Dashboard
           </h1>
         </div>
         <div class="flex items-center gap-3">
           <span class="px-4 py-2 bg-cream rounded-full text-chocolate font-bold text-sm border border-chocolate/5">
-            {{ adminStore.pendingTransactions.length }} Transactions
+            {{ adminStore.pendingTransactions.length }} Record(s) Total
           </span>
           <button @click="isAuthenticated = false; sessionStorage.removeItem('admin_auth')" class="text-chocolate/40 hover:text-red-500 transition-colors text-sm font-bold uppercase tracking-widest">
             Logout
@@ -142,8 +142,11 @@ onMounted(() => {
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </div>
-        <h2 class="text-2xl font-serif font-bold text-chocolate mb-2">No pending transactions</h2>
-        <p class="text-chocolate/50">All votes have been processed.</p>
+        <h2 class="text-2xl font-serif font-bold text-chocolate mb-2">No transaction records found</h2>
+        <p class="text-chocolate/50 mb-6">If you know payments have been made, check your internet connection and Firestore Security Rules.</p>
+        <button @click="window.location.reload()" class="bg-[#09A588] text-white px-6 py-3 rounded-xl font-bold hover:bg-[#07856d] transition-all">
+          Refresh Database
+        </button>
       </div>
 
       <div v-else class="space-y-6">

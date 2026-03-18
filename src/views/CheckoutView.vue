@@ -100,11 +100,13 @@ const payWithPaystack = async () => {
 
   let transactionId = null;
   try {
+    console.log('--- STARTING PAYSTACK FLOW ---');
+    console.log('Step 1: Creating pending transaction in Firestore...');
     transactionId = await adminStore.submitTransaction(transactionData);
-    console.log('Pending transaction created:', transactionId);
+    console.log('SUCCESS: Pending transaction created with ID:', transactionId);
   } catch (error) {
-    console.error('Failed to create pending transaction:', error);
-    alert('Failed to initialize payment. Please check your internet connection and try again.');
+    console.error('CRITICAL ERROR: Failed to create pending transaction before opening Paystack:', error);
+    alert('Failed to initialize payment record. Please check your internet connection. Detail: ' + error.message);
     isProcessing.value = false;
     return;
   }
@@ -126,7 +128,8 @@ const payWithPaystack = async () => {
     },
     callback: async (response) => {
       // Payment successful
-      console.log('Paystack payment successful:', response.reference);
+      console.log('Step 2: Paystack payment successful! Reference:', response.reference);
+      console.log('Step 3: Updating Firestore record to "approved"...');
       
       try {
         // 2. Update the EXISTING transaction record to 'approved'
@@ -136,23 +139,24 @@ const payWithPaystack = async () => {
           paystackReference: response.reference,
           confirmedAt: new Date().toISOString()
         });
-
+        
+        console.log('SUCCESS: Firestore record updated to approved.');
         alert('Payment successful! Your votes have been recorded.');
         cartStore.$patch({ votes: [] });
         router.push('/');
       } catch (error) {
-        console.error('Failed to update transaction status:', error);
-        alert('Payment was successful, but we had trouble updating the record. Please keep your reference: ' + response.reference + ' and contact support if your votes do not appear shortly.');
+        console.error('CRITICAL ERROR: Payment succeeded in Paystack, but Firestore update failed:', error);
+        alert('Payment was successful (Reference: ' + response.reference + '), but we failed to update your vote count in our database. Please contact support with your reference.');
       } finally {
         isProcessing.value = false;
+        console.log('--- PAYSTACK FLOW COMPLETE ---');
       }
     },
     onClose: () => {
       isProcessing.value = false;
+      console.log('INFO: Paystack popup closed by user before completion.');
       // We leave the transaction as 'pending' in Firestore. 
       // The admin can see it and potentially reconcile it if the user claims they paid.
-      // Or we could mark it as 'cancelled' if we're sure.
-      console.log('Paystack popup closed by user');
     }
   });
 
