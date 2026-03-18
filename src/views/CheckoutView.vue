@@ -4,9 +4,6 @@ import { useCartStore } from '../stores/cart';
 import { useAdminStore } from '../stores/admin';
 import { useDeadlineStore } from '../stores/deadline';
 import { useRouter } from 'vue-router';
-import { db } from '../firebase';
-import { doc, updateDoc } from 'firebase/firestore';
-
 
 const cartStore = useCartStore();
 const adminStore = useAdminStore();
@@ -16,8 +13,6 @@ const router = useRouter();
 const receiptFile = ref(null);
 const receiptPreview = ref(null);
 const isProcessing = ref(false);
-const email = ref('fasholatolulope3@gmail.com');
-const paystackPublicKey = 'pk_live_ae8246320eb1758fc30e5142aa658dd5f14167bf';
 
 const handleFileChange = (e) => {
   const file = e.target.files[0];
@@ -83,96 +78,11 @@ const handleFileChange = (e) => {
   reader.readAsDataURL(file);
 };
 
-const payWithPaystack = async () => {
-  isProcessing.value = true;
-
-  // 1. Create a "pending" transaction record in Firestore FIRST
-  // This ensures that even if the browser crashes after payment, we have a record to reconcile
-  const transactionData = {
-    paymentType: 'paystack',
-    votes: JSON.parse(JSON.stringify(cartStore.votes)),
-    totalCost: cartStore.totalCost,
-    email: email.value,
-    status: 'pending', // Initially pending
-    timestamp: new Date().toISOString(),
-    paystackReference: 'awaiting_payment'
-  };
-
-  let transactionId = null;
-  try {
-    console.log('--- STARTING PAYSTACK FLOW ---');
-    console.log('Step 1: Creating pending transaction in Firestore...');
-    transactionId = await adminStore.submitTransaction(transactionData);
-    console.log('SUCCESS: Pending transaction created with ID:', transactionId);
-  } catch (error) {
-    console.error('CRITICAL ERROR: Failed to create pending transaction before opening Paystack:', error);
-    alert('Failed to initialize payment record. Please check your internet connection. Detail: ' + error.message);
-    isProcessing.value = false;
-    return;
-  }
-
-  const handler = PaystackPop.setup({
-    key: paystackPublicKey,
-    email: email.value,
-    amount: cartStore.totalCost * 100, // Amount in Kobo
-    currency: 'NGN',
-    metadata: {
-      transactionId: transactionId,
-      custom_fields: [
-        {
-          display_name: "Transaction ID",
-          variable_name: "transaction_id",
-          value: transactionId
-        }
-      ]
-    },
-    callback: async (response) => {
-      // Payment successful
-      console.log('Step 2: Paystack payment successful! Reference:', response.reference);
-      console.log('Step 3: Updating Firestore record to "approved"...');
-      
-      try {
-        // 2. Update the EXISTING transaction record to 'approved'
-        const docRef = doc(db, "transactions", transactionId);
-        await updateDoc(docRef, {
-          status: 'approved',
-          paystackReference: response.reference,
-          confirmedAt: new Date().toISOString()
-        });
-        
-        console.log('SUCCESS: Firestore record updated to approved.');
-        alert('Payment successful! Your votes have been recorded.');
-        cartStore.$patch({ votes: [] });
-        router.push('/');
-      } catch (error) {
-        console.error('CRITICAL ERROR: Payment succeeded in Paystack, but Firestore update failed:', error);
-        alert('Payment was successful (Reference: ' + response.reference + '), but we failed to update your vote count in our database. Please contact support with your reference.');
-      } finally {
-        isProcessing.value = false;
-        console.log('--- PAYSTACK FLOW COMPLETE ---');
-      }
-    },
-    onClose: () => {
-      isProcessing.value = false;
-      console.log('INFO: Paystack popup closed by user before completion.');
-      // We leave the transaction as 'pending' in Firestore. 
-      // The admin can see it and potentially reconcile it if the user claims they paid.
-    }
-  });
-
-  handler.openIframe();
-};
-
-
-
-
-
 const handlePayment = async () => {
   if (!receiptFile.value) {
     alert('Please upload your payment receipt.');
     return;
   }
-
 
   isProcessing.value = true;
   
@@ -184,8 +94,6 @@ const handlePayment = async () => {
   };
 
   try {
-
-    
     // Submit to Firestore with a timeout to prevent hanging "rolling" spinner
     console.log('Attempting to save to Firestore...');
     const dbPromise = adminStore.submitTransaction(transactionData);
@@ -258,7 +166,10 @@ onMounted(() => {
       
       <!-- Votes Summary Section -->
       <section>
-        <h2 class="text-xl font-bold text-chocolate mb-4 border-b border-chocolate/10 pb-2">Your Votes</h2>
+        <div class="flex items-center justify-between mb-4 border-b border-chocolate/10 pb-2">
+          <h2 class="text-xl font-bold text-chocolate">Your Votes</h2>
+          <span class="text-xs font-bold text-chocolate/30 uppercase tracking-widest">Bank Transfer Payment</span>
+        </div>
         <div class="space-y-4">
           <div v-for="(vote, index) in cartStore.votes" :key="index" class="flex justify-between items-center py-2 border-b border-chocolate/5 last:border-0">
             <div>
@@ -279,45 +190,11 @@ onMounted(() => {
         </div>
       </section>
 
-      <!-- Paystack Payment Section -->
-      <section class="bg-[#09A588]/5 p-6 rounded-2xl border border-[#09A588]/20">
-        <h2 class="text-xl font-bold text-chocolate mb-4 flex items-center gap-2">
-          Secure Online Payment
-          <span class="text-xs font-normal text-chocolate/50 bg-white px-2 py-0.5 rounded-full border border-chocolate/10">POWERED BY PAYSTACK</span>
-        </h2>
-        <div class="space-y-4">
-          <button 
-            @click="payWithPaystack"
-            :disabled="isProcessing"
-            class="w-full bg-[#09A588] hover:bg-[#07856d] text-white font-black text-lg py-5 px-8 rounded-2xl transition-all shadow-xl hover:shadow-[#09A588]/20 flex items-center justify-center gap-3 disabled:opacity-70"
-          >
-            <span v-if="!isProcessing">Pay ₦{{ cartStore.totalCost.toLocaleString() }} Now</span>
-            <span v-else class="flex items-center gap-2">
-              <svg class="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              Processing...
-            </span>
-          </button>
-          <p class="text-[10px] text-center text-chocolate/40 uppercase tracking-widest font-bold">
-            Votes are INSTANTLY recorded after successful payment
-          </p>
-        </div>
-      </section>
-
-      <!-- OR Divider -->
-      <div class="flex items-center gap-4 py-2">
-        <div class="flex-1 h-[1px] bg-chocolate/10"></div>
-        <span class="text-xs font-bold text-chocolate/30 uppercase tracking-widest">OR USE BANK TRANSFER</span>
-        <div class="flex-1 h-[1px] bg-chocolate/10"></div>
-      </div>
-
       <!-- Bank Transfer Payment Instructions -->
-      <section class="bg-cream-dark p-6 rounded-2xl">
-        <h2 class="text-xl font-bold text-chocolate mb-4">Manual Bank Transfer</h2>
+      <section class="bg-cream-dark p-6 rounded-2xl border border-chocolate/5">
+        <h2 class="text-xl font-bold text-chocolate mb-4">Step 1: Make Transfer</h2>
         <p class="text-chocolate/80 mb-6">
-          To complete your voting, please make a transfer of <span class="font-bold">₦{{ cartStore.totalCost.toLocaleString() }}</span> to the bank account below.
+          Please make a transfer of <span class="font-bold">₦{{ cartStore.totalCost.toLocaleString() }}</span> to the bank account below.
         </p>
         
         <div class="bg-white border border-chocolate/10 rounded-xl p-6 mb-6">
