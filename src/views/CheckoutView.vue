@@ -95,14 +95,18 @@ const handlePayment = async () => {
 
   try {
     // Submit to Firestore with a timeout to prevent hanging "rolling" spinner
-    console.log('Attempting to save to Firestore...');
+    console.log('Attempting to save core transaction to Firestore...');
     const dbPromise = adminStore.submitTransaction(transactionData);
     const timeoutPromise = new Promise((_, reject) => 
       setTimeout(() => reject(new Error('Database timeout - check your Firebase connection or Security Rules')), 10000)
     );
 
-    await Promise.race([dbPromise, timeoutPromise]);
+    const txId = await Promise.race([dbPromise, timeoutPromise]);
     console.log('Firestore save successful');
+    
+    // Save image to the receipts collection
+    console.log('Attempting to save receipt image to receipts collection...');
+    await adminStore.submitReceiptImage(txId, transactionData.receiptImage);
 
     alert('Submission successful! Your votes are now pending admin confirmation. They will count once the admin confirms your payment.');
     cartStore.$patch({ votes: [] });
@@ -115,7 +119,8 @@ const handlePayment = async () => {
     } else {
        // Try one last time or just notify
        try {
-         await adminStore.submitTransaction(transactionData);
+         const txId = await adminStore.submitTransaction(transactionData);
+         await adminStore.submitReceiptImage(txId, transactionData.receiptImage);
          alert('Votes submitted finally! (There were initial network delays).');
          cartStore.$patch({ votes: [] });
          router.push('/');

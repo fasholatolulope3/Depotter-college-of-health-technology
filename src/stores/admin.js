@@ -5,7 +5,9 @@ import { db } from "../firebase";
 import { 
   collection, 
   addDoc, 
-  updateDoc, 
+  updateDoc,
+  setDoc,
+  getDoc,
   doc, 
   onSnapshot, 
   query, 
@@ -46,10 +48,11 @@ export const useAdminStore = defineStore("admin", () => {
   const submitTransaction = async (transactionData) => {
     try {
       // Ensure status is included, defaulting to 'pending' if not provided
+      const { receiptImage, ...dataWithoutImage } = transactionData;
       const finalData = {
         timestamp: new Date().toISOString(),
-        status: transactionData.status || 'pending',
-        ...transactionData
+        status: dataWithoutImage.status || 'pending',
+        ...dataWithoutImage
       };
       
       const docRef = await addDoc(collection(db, "transactions"), finalData);
@@ -57,6 +60,30 @@ export const useAdminStore = defineStore("admin", () => {
     } catch (error) {
       console.error("Error adding transaction: ", error);
       throw error;
+    }
+  };
+
+  const submitReceiptImage = async (transactionId, imageBase64) => {
+    try {
+      const docRef = doc(db, "receipts", transactionId);
+      await setDoc(docRef, { receiptImage: imageBase64 });
+    } catch (error) {
+      console.error("Error adding receipt image: ", error);
+      throw error;
+    }
+  };
+
+  const getReceiptImage = async (transactionId) => {
+    try {
+      const docRef = doc(db, "receipts", transactionId);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        return docSnap.data().receiptImage;
+      }
+      return null;
+    } catch (error) {
+      console.error("Error fetching receipt image: ", error);
+      return null;
     }
   };
 
@@ -85,6 +112,8 @@ export const useAdminStore = defineStore("admin", () => {
   return {
     pendingTransactions,
     submitTransaction,
+    submitReceiptImage,
+    getReceiptImage,
     approveTransaction,
     rejectTransaction,
   };
