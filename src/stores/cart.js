@@ -43,7 +43,7 @@ export const useCartStore = defineStore('cart', () => {
   });
 
   const totalCost = computed(() => {
-    return totalVotes.value * 100; // ₦100 per vote
+    return totalVotes.value * 10000; // ₦10,000 per vote
   });
 
   return {

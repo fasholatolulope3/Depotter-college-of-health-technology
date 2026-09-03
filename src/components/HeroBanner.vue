@@ -21,7 +21,7 @@
       
       <p class="text-lg md:text-xl text-cream/90 max-w-2xl font-light leading-relaxed drop-shadow">
         Support your favorite candidates by voting in the categories below. 
-        Each vote costs <span class="font-semibold text-white">₦100</span> and you can vote multiple times!
+        Each vote costs <span class="font-semibold text-white">₦10,000</span> and you can vote multiple times!
       </p>
     </div>
   </section>
