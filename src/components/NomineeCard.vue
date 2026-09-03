@@ -36,6 +36,16 @@ const decrement = () => {
   cartStore.removeVote(categoryId.value, props.nomineeName);
 };
 
+const onQuantityInput = (event) => {
+  const value = parseInt(event.target.value, 10);
+  cartStore.setQuantity(
+    categoryId.value,
+    props.categoryName,
+    props.nomineeName,
+    Number.isNaN(value) ? 0 : value
+  );
+};
+
 // Find the latest vote count directly from the unified categories store
 const displayVotes = computed(() => {
   const category = categoriesStore.categories.find(c => Number(c.id) === categoryId.value);
@@ -99,9 +109,14 @@ const displayVotes = computed(() => {
           </svg>
         </button>
         
-        <div class="flex-1 text-center font-bold text-chocolate text-lg">
-          {{ quantity }}
-        </div>
+        <input
+          type="number"
+          min="0"
+          inputmode="numeric"
+          :value="quantity"
+          @change="onQuantityInput"
+          class="flex-1 min-w-0 text-center font-bold text-chocolate text-lg bg-transparent outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+        />
         
         <button 
           @click="increment" 
