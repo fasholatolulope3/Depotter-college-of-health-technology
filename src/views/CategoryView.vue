@@ -41,7 +41,7 @@ const goBack = () => {
         
         <div>
            <div class="inline-flex items-center gap-2 px-6 py-3 bg-[#e8dad5] text-[#5a2a03] font-bold rounded-full">
-            ₦10,000 per vote
+            Any amount — ₦1 = 1 vote
           </div>
         </div>
       </div>

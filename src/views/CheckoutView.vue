@@ -145,7 +145,7 @@ onMounted(() => {
             </div>
             <div class="text-right">
               <p class="font-bold text-chocolate bg-cream px-3 py-1 rounded-full">{{ vote.quantity }} votes</p>
-              <p class="text-sm text-chocolate/50 mt-1">₦{{ (vote.quantity * 10000).toLocaleString() }}</p>
+              <p class="text-sm text-chocolate/50 mt-1">₦{{ vote.quantity.toLocaleString() }}</p>
             </div>
           </div>
         </div>

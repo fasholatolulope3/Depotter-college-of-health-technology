@@ -94,40 +94,45 @@ const displayVotes = computed(() => {
         <p class="text-chocolate/50 text-sm font-medium">{{ displayVotes }} vote{{ displayVotes !== 1 ? 's' : '' }}</p>
       </div>
       
-      <!-- Vote quantity selector matching the design -->
-      <div v-if="!deadlineStore.isExpired" class="bg-chocolate/5 rounded-full flex items-center p-2 relative">
-        <button 
-          @click="decrement" 
-          :disabled="quantity === 0"
-          :class="[
-            'w-10 h-10 rounded-full flex items-center justify-center text-lg transition-colors bg-white shadow-sm disabled:opacity-50 disabled:cursor-not-allowed',
-            quantity > 0 ? 'text-chocolate hover:bg-cream' : 'text-chocolate/30'
-          ]"
-        >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
-          </svg>
-        </button>
-        
-        <input
-          type="number"
-          min="0"
-          inputmode="numeric"
-          :value="quantity"
-          @change="onQuantityInput"
-          class="flex-1 min-w-0 text-center font-bold text-chocolate text-lg bg-transparent outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-        />
-        
-        <button 
-          @click="increment" 
-          class="w-10 h-10 rounded-full bg-white text-chocolate flex items-center justify-center hover:bg-cream transition-colors shadow-sm"
-        >
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-          </svg>
-        </button>
+      <!-- Vote amount selector matching the design -->
+      <div v-if="!deadlineStore.isExpired" class="space-y-1.5">
+        <p class="text-[10px] font-bold text-chocolate/40 uppercase tracking-widest px-2">Amount (₦) &middot; ₦1 = 1 vote</p>
+        <div class="bg-chocolate/5 rounded-full flex items-center p-2 relative">
+          <button
+            @click="decrement"
+            :disabled="quantity === 0"
+            :class="[
+              'w-10 h-10 rounded-full flex items-center justify-center text-lg transition-colors bg-white shadow-sm disabled:opacity-50 disabled:cursor-not-allowed shrink-0',
+              quantity > 0 ? 'text-chocolate hover:bg-cream' : 'text-chocolate/30'
+            ]"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
+            </svg>
+          </button>
+
+          <span class="text-chocolate/40 font-bold pl-1">₦</span>
+          <input
+            type="number"
+            min="0"
+            inputmode="numeric"
+            :value="quantity"
+            @change="onQuantityInput"
+            placeholder="0"
+            class="flex-1 min-w-0 text-center font-bold text-chocolate text-lg bg-transparent outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+          />
+
+          <button
+            @click="increment"
+            class="w-10 h-10 rounded-full bg-white text-chocolate flex items-center justify-center hover:bg-cream transition-colors shadow-sm shrink-0"
+          >
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+          </button>
+        </div>
       </div>
-      
+
       <div v-else class="bg-red-50 text-red-500 text-center rounded-full py-3 font-bold text-sm border border-red-100 uppercase tracking-widest">
         Voting Closed
       </div>
